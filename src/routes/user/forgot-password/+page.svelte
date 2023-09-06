@@ -1,6 +1,6 @@
 <form action="" class="flex flex-col gap-2">
 	<div>
-		<h1 class="text-4xl">Login</h1>
+		<h1 class="text-4xl">Forgot Password</h1>
 	</div>
 
 	<div class="flex flex-col gap-1">
