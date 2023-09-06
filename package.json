@@ -45,6 +45,7 @@
     "@supabase/auth-ui-shared": "^0.1.6",
     "@supabase/auth-ui-svelte": "^0.2.3",
     "drizzle-orm": "^0.28.5",
-    "postgres": "^3.3.5"
+    "postgres": "^3.3.5",
+    "svelte-french-toast": "^1.2.0"
   }
 }
