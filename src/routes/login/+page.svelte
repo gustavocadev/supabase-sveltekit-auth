@@ -17,7 +17,7 @@
 
 <MetaTags title="Login" />
 
-<form action="" class="flex flex-col gap-2">
+<form action="?/login" class="flex flex-col gap-2">
 	<div>
 		<h1 class="text-4xl">Login</h1>
 	</div>
@@ -34,6 +34,11 @@
 		<label for="password">Password</label>
 		<input type="password" name="password" id="password" class="input" />
 	</div>
+
+	<p>
+		Forgot your password? <a href="/user/forgot-password" class="font-bold hover:underline">Reset</a
+		>
+	</p>
 
 	<button class="btn variant-filled-primary" type="submit"> Login </button>
 
