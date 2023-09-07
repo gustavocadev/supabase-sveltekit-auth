@@ -2,6 +2,7 @@
 	import '../app.postcss';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { Toaster } from 'svelte-french-toast';
 
 	export let data;
 
@@ -26,3 +27,4 @@
 <div class="container mx-auto" style="padding: 50px 0 100px 0">
 	<slot />
 </div>
+<Toaster />
