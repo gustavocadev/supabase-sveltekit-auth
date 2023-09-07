@@ -2,15 +2,29 @@
 	import { enhance } from '$app/forms';
 	import { MetaTags } from 'svelte-meta-tags';
 	import { superForm } from 'sveltekit-superforms/client';
+	import { toast } from 'svelte-french-toast';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
 	export let data;
 
 	const { form, errors } = superForm(data.form);
+
+	const handleSubmitFunction: SubmitFunction = () => {
+		return ({ result }) => {
+			if (result.type === 'success') toast.success('Verify your email');
+			if (result.type === 'error') toast.error('Something went wrong');
+		};
+	};
 </script>
 
 <MetaTags title="Signup" />
 
-<form action="?/signup" class="flex flex-col gap-2" method="post" use:enhance>
+<form
+	action="?/signup"
+	class="flex flex-col gap-2"
+	method="post"
+	use:enhance={handleSubmitFunction}
+>
 	<div>
 		<h1 class="text-4xl">Sign up</h1>
 	</div>
