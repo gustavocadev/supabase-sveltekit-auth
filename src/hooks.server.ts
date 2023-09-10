@@ -1,6 +1,9 @@
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { db } from '$lib/server/db';
+import { profiles } from '$lib/server/schema';
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
-import type { Handle } from '@sveltejs/kit';
+import { redirect, type Handle } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 
 export const handle = (async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient({
@@ -20,6 +23,18 @@ export const handle = (async ({ event, resolve }) => {
 		const { session } = data;
 		return session;
 	};
+
+	// protect mutliple routes
+	if (event.url.pathname === '/') {
+		const session = await event.locals.getSession();
+		if (!session) throw redirect(303, '/login');
+
+		const userId = session.user.id;
+		const profile = await db.select().from(profiles).where(eq(profiles.id, userId));
+
+		// if the user has not completed their profile, redirect them to the setup page
+		if (!profile.at(0)?.last_name) throw redirect(303, '/profile/setup');
+	}
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {
