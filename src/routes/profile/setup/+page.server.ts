@@ -3,10 +3,10 @@ import {
 	sendOPTCodeToPhoneNumber,
 	verifyOPTCode
 } from '$lib/helpers/sendMessage.js';
-import { sendOPTCodeSchema } from '$lib/schemas/profile-setup/sendOPTCode.js';
+import { sendOPTCodeSchema } from '$lib/schemas/profile-setup/sendOPTCodeSchema.js';
 import { setupProfileSchema } from '$lib/schemas/profile-setup/setupProfileSchema';
-import { db } from '$lib/server/db';
-import { profiles } from '$lib/server/schema';
+import { db } from '$lib/server/db.js';
+import { profiles } from '$lib/server/schema.js';
 import { redirect, type Actions, fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms/server';
@@ -16,9 +16,10 @@ export const load = async ({ locals }) => {
 	if (!session) throw redirect(303, '/login');
 
 	const userId = session.user.id;
-
 	const profile = await db.select().from(profiles).where(eq(profiles.id, userId));
-	console.log(profile);
+
+	// if the user has already setup their profile, redirect them to the home page
+	if (profile.at(0)?.phone_validate) throw redirect(303, '/');
 
 	const { data } = await locals.supabase.storage.from(`avatars`).list(userId, {
 		sortBy: {
@@ -28,8 +29,10 @@ export const load = async ({ locals }) => {
 
 	const firstImgName = data?.reverse()?.at(0)?.name;
 
+	// get the list of country codes
 	const countryCodes = await getCountryCodes();
 
+	// generate a signed url for the user's avatar
 	const avatarUrl = await locals.supabase.storage
 		.from('avatars')
 		.createSignedUrl(`${userId}/${firstImgName}`, 60);
@@ -54,20 +57,15 @@ export const actions = {
 
 		const { countryCode, phoneNumber } = form.data;
 
-		const verification = await sendOPTCodeToPhoneNumber(`+${countryCode}${phoneNumber}`);
-
-		console.log(verification.status);
+		// Send SMS
+		await sendOPTCodeToPhoneNumber(`${countryCode}${phoneNumber}`);
 
 		return {
 			form
 		};
 	},
-	completeProfile: async ({ request, url }) => {
+	completeProfile: async ({ request }) => {
 		const form = await superValidate(request, setupProfileSchema);
-		const code = url.searchParams.get('code');
-		if (!code) {
-			throw redirect(303, '/login');
-		}
 
 		if (!form.valid) {
 			console.log(form.data);
@@ -75,16 +73,33 @@ export const actions = {
 				form
 			});
 		}
-		const { countryCode, phoneNumber, codeToVerify } = form.data;
+		const { countryCode, phoneNumber, codeToVerify, firstName, avatarUrl, lastName } = form.data;
 
-		const verification_check = await verifyOPTCode(`+${countryCode}${phoneNumber}`, codeToVerify);
+		const verification_check = await verifyOPTCode(`${countryCode}${phoneNumber}`, codeToVerify);
 
 		if (verification_check.status === 'approved') {
+			console.log({
+				first_name: firstName,
+				last_name: lastName,
+				avatar_url: avatarUrl,
+				phone_validate: true,
+				country_code: countryCode,
+				phone_number: phoneNumber
+			});
 			// Save
+			await db.update(profiles).set({
+				first_name: firstName,
+				last_name: lastName,
+				avatar_url: avatarUrl,
+				phone_validate: true,
+				country_code: countryCode,
+				phone_number: phoneNumber
+			});
+
 			throw redirect(303, '/');
 		}
 
 		// Save
-		throw redirect(303, '/login');
+		throw redirect(303, '/profile/setup');
 	}
 } satisfies Actions;
