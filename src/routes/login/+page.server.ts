@@ -8,15 +8,13 @@ export const load: PageServerLoad = async ({ url, locals: { getSession } }) => {
 	const session = await getSession();
 
 	// if the user is already logged in return them to the account page
-	if (session) {
-		throw redirect(303, '/');
-	}
+	if (session) throw redirect(303, '/');
 
 	return { url: url.origin };
 };
 
 export const actions = {
-	login: async ({ request }) => {
+	login: async ({ request, locals }) => {
 		const form = await superValidate(request, loginSchema);
 
 		// Convenient validation check:
@@ -25,6 +23,16 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		return { form };
+		const { data, error } = await locals.supabase.auth.signInWithPassword({
+			email: form.data.email,
+			password: form.data.password
+		});
+
+		if (error) {
+			console.log(error);
+			return fail(400, { form });
+		}
+
+		throw redirect(303, '/');
 	}
 } satisfies Actions;
