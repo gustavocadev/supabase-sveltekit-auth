@@ -3,6 +3,10 @@
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { Toaster } from 'svelte-french-toast';
+	import { storePopup } from '@skeletonlabs/skeleton';
+	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
+
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
 	export let data;
 
