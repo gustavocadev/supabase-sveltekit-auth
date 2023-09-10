@@ -40,7 +40,7 @@ export const getCountryCodes = async () => {
 
 	const countryMeta = countries.map((c) => {
 		return {
-			countryCode: c.countryCodes[0],
+			countryCode: `+${c.countryCodes.at(0)}`,
 			countryName: c.name,
 			icon: getUnicodeFlagIcon(c.isoCode)
 		};
