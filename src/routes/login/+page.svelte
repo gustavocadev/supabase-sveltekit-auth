@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { MetaTags } from 'svelte-meta-tags';
 
 	export let data;
@@ -17,11 +18,11 @@
 
 <MetaTags title="Login" />
 
-<form action="?/login" class="flex flex-col gap-2">
+<form action="?/login" class="flex flex-col gap-2" method="post" use:enhance>
 	<div>
 		<h1 class="text-4xl">Login</h1>
 	</div>
-	<button class="btn variant-filled-secondary" on:click={handleSignGoogleProvider}
+	<button class="btn variant-filled-secondary" on:click={handleSignGoogleProvider} type="button"
 		>Continue with Google</button
 	>
 
