@@ -1,6 +1,7 @@
 // src/routes/+layout.server.ts
-export const load = async ({ locals: { getSession } }) => {
+export const load = async ({ locals }) => {
+	const session = await locals.getSession();
 	return {
-		session: await getSession()
+		session
 	};
 };
