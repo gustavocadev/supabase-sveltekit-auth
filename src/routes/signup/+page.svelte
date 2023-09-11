@@ -3,31 +3,52 @@
 	import { MetaTags } from 'svelte-meta-tags';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { toast } from 'svelte-french-toast';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import type { signupSchema } from '$lib/schemas/user/signupSchema.js';
+	import type { Message } from 'twilio/lib/twiml/MessagingResponse.js';
 
 	export let data;
 
-	const { form, errors } = superForm(data.form);
+	const { form, errors, message } = superForm<typeof signupSchema, Message>(data.form, {
+		onUpdated: ({ form }) => {
+			if (form?.message?.type === 'error') {
+				toast.error(form.message.text);
+			}
+			if (form?.message?.type === 'success') {
+				toast.success(form.message.text);
+			}
+		}
+	});
 
-	const handleSubmitFunction: SubmitFunction = () => {
-		return ({ result }) => {
-			if (result.type === 'success') toast.success('Verify your email');
-			if (result.type === 'error') toast.error('Something went wrong');
-		};
+	const handleSignUpGoogleProvider = async () => {
+		const { error, data: googleData } = await data.supabase.auth.signInWithOAuth({
+			provider: 'google',
+			options: {
+				queryParams: {
+					access_type: 'offline',
+					prompt: 'consent'
+				}
+			}
+		});
+
+		if (error) {
+			toast.error(error.message);
+			return;
+		}
+
+		if (googleData) toast.success('Logged in with Google');
 	};
 </script>
 
 <MetaTags title="Signup" />
 
-<form
-	action="?/signup"
-	class="flex flex-col gap-2"
-	method="post"
-	use:enhance={handleSubmitFunction}
->
+<form action="?/signup" class="flex flex-col gap-2" method="post" use:enhance>
 	<div>
 		<h1 class="text-4xl">Sign up</h1>
 	</div>
+
+	<button class="btn variant-filled-secondary" on:click={handleSignUpGoogleProvider} type="button"
+		>Signup with Google</button
+	>
 
 	<div class="flex flex-col gap-1">
 		<label for="email">Email</label>
