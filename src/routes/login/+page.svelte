@@ -1,28 +1,60 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { applyAction, enhance } from '$app/forms';
+	import type { loginSchema } from '$lib/schemas/user/loginSchema.js';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import { toast } from 'svelte-french-toast';
 	import { MetaTags } from 'svelte-meta-tags';
+	import { superForm } from 'sveltekit-superforms/client';
+	import type { PageData } from './$types';
+	import type { Message } from '$lib/types/Message';
 
-	export let data;
+	export let data: PageData;
 
-	const handleSignGoogleProvider = async () => {
+	const { message } = superForm<typeof loginSchema, Message>(data.form, {
+		onUpdated: ({ form }) => {
+			if (form?.message?.type === 'error') {
+				toast.error(form.message.text);
+			}
+		}
+	});
+
+	const handleSignInGoogleProvider = async () => {
 		const { error, data: googleData } = await data.supabase.auth.signInWithOAuth({
-			provider: 'google'
+			provider: 'google',
+			options: {
+				queryParams: {
+					access_type: 'offline',
+					prompt: 'consent'
+				}
+			}
 		});
 		if (error) {
-			console.log(error);
+			toast.error(error.message);
+			return;
 		}
 
-		console.log(googleData);
+		if (googleData) {
+			toast.success('Logged in with Google');
+		}
+	};
+
+	const handleLoginSubmit: SubmitFunction = () => {
+		return async ({ result }) => {
+			if (result.type === 'success') toast.success('Logged in');
+
+			await applyAction(result);
+		};
 	};
 </script>
 
 <MetaTags title="Login" />
 
-<form action="?/login" class="flex flex-col gap-2" method="post" use:enhance>
+<form action="?/login" class="flex flex-col gap-2" method="post" use:enhance={handleLoginSubmit}>
 	<div>
 		<h1 class="text-4xl">Login</h1>
 	</div>
-	<button class="btn variant-filled-secondary" on:click={handleSignGoogleProvider} type="button"
+
+	<button class="btn variant-filled-secondary" on:click={handleSignInGoogleProvider} type="button"
 		>Continue with Google</button
 	>
 
