@@ -11,13 +11,26 @@
 	} from '@skeletonlabs/skeleton';
 	import { invalidateAll } from '$app/navigation';
 	import toast from 'svelte-french-toast';
+	import type { sendOPTCodeSchema } from '$lib/schemas/profile-setup/sendOPTCodeSchema.js';
+	import type { Message } from '$lib/types/Message.js';
 
 	export let data;
 
 	let countryCode = '';
 	let phoneNumber = '';
 
-	const { form, errors } = superForm(data.form);
+	const { form: sendOPTCodeForm, errors: sendOPTCodeErrors } = superForm<
+		typeof sendOPTCodeSchema,
+		Message
+	>(data.sendOPTCodeForm, {
+		onUpdated: ({ form }) => {
+			if (form.message?.type === 'success') {
+				toast.success(form.message.text);
+			}
+		}
+	});
+
+	const { form: setupProfileForm, errors: setupProfileErrors } = superForm(data.setupProfileForm);
 
 	const handleUpdateProfilePhoto = async (e: Event) => {
 		const target = e.target as HTMLInputElement;
@@ -52,10 +65,6 @@
 		keywords: [country.countryName, country.countryCode]
 	}));
 
-	// function onPopupCountryCodeSelection(event: CustomEvent<AutocompleteOption>): void {
-	// 	countryCode = event.detail.label;
-	// }
-
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
 		target: 'popupAutocomplete',
@@ -81,26 +90,26 @@
 	<div class="flex flex-col gap-1">
 		<label for="firstName">First Name</label>
 		<input type="text" name="firstName" id="firstName" class="input" placeholder="Eg. Ryan" />
+
+		{#if $setupProfileErrors.firstName}
+			<section class="card text-error-200">
+				{$setupProfileErrors.firstName}
+			</section>
+		{/if}
 	</div>
 
 	<div class="flex flex-col gap-1">
 		<label for="lastName">Last Name</label>
 		<input type="text" name="lastName" id="lastName" class="input" placeholder="Eg. Carniato" />
+		{#if $setupProfileErrors.lastName}
+			<section class="card text-error-200">
+				{$setupProfileErrors.lastName}
+			</section>
+		{/if}
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<form
-			action="?/sendOPTCode"
-			class="flex flex-col gap-4"
-			use:enhance={() => {
-				return ({ result }) => {
-					if (result.type === 'success') {
-						toast.success('Code sent to your phone number');
-					}
-				};
-			}}
-			method="post"
-		>
+		<form action="?/sendOPTCode" class="flex flex-col gap-4" method="post">
 			<div class="flex gap-4">
 				<div class="w-2/12 flex flex-col gap-2">
 					<label for="">Country Code</label>
@@ -140,6 +149,11 @@
 	<div class="flex flex-col gap-1">
 		<label for="verifyCode">Verify Code</label>
 		<input type="text" name="codeToVerify" id="verifyCode" class="input" placeholder="Eg. 123456" />
+		{#if $setupProfileErrors.codeToVerify}
+			<section class="card text-error-200">
+				{$setupProfileErrors.codeToVerify}
+			</section>
+		{/if}
 	</div>
 
 	<input type="hidden" bind:value={countryCode} name="countryCode" />
