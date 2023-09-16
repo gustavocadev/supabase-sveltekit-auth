@@ -20,12 +20,17 @@ export const load = async ({ locals }) => {
 	const userId = session.user.id;
 	const profile = (await db.select().from(profiles).where(eq(profiles.id, userId))).at(0);
 
-	if (!profile) {
-		throw error(404, 'Profile not found');
-	}
+	if (!profile) throw error(404, 'Profile not found');
 
 	// if the user has already setup their profile, redirect them to the home page
 	if (profile.phone_validate) throw redirect(303, '/');
+
+	// get the list of country codes
+	const countryCodes = await getCountryCodes();
+
+	// my forms validations
+	const setupProfileForm = await superValidate(setupProfileSchema);
+	const sendOPTCodeForm = await superValidate(sendOPTCodeSchema);
 
 	const userAvatars = await locals.supabase.storage.from(`avatars`).list(userId, {
 		sortBy: {
@@ -34,12 +39,14 @@ export const load = async ({ locals }) => {
 	});
 
 	if (userAvatars.error) throw error(500, userAvatars.error.message);
-	if (!userAvatars.data) throw error(404, 'No images found');
-
+	if (userAvatars.data.length === 0)
+		return {
+			setupProfileForm,
+			sendOPTCodeForm,
+			countryCodes,
+			avatar: null
+		};
 	const firstImgName = userAvatars.data.reverse().at(0)?.name;
-
-	// get the list of country codes
-	const countryCodes = await getCountryCodes();
 
 	// generate a signed url for the user's avatar
 	const urlSignedAvatars = await locals.supabase.storage
@@ -47,10 +54,8 @@ export const load = async ({ locals }) => {
 		.createSignedUrl(`${userId}/${firstImgName}`, 60);
 
 	if (urlSignedAvatars.error) throw error(500, urlSignedAvatars.error.message);
-	if (!urlSignedAvatars.data) throw error(404, 'No images found');
+	if (!urlSignedAvatars.data) throw error(404, 'Error generating signed url');
 
-	const setupProfileForm = await superValidate(setupProfileSchema);
-	const sendOPTCodeForm = await superValidate(sendOPTCodeSchema);
 	return {
 		setupProfileForm,
 		sendOPTCodeForm,
