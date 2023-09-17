@@ -11,6 +11,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 	if (session) throw redirect(303, '/');
 
 	const form = superValidate(loginSchema);
+
 	return { url: url.origin, form };
 };
 
