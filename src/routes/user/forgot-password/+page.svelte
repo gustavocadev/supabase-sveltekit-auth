@@ -3,6 +3,7 @@
 	import type { forgotPasswordSchema } from '$lib/schemas/user/forgotPasswordSchema.js';
 	import type { Message } from '$lib/types/Message.js';
 	import { toast } from 'svelte-french-toast';
+	import { MetaTags } from 'svelte-meta-tags';
 	import { superForm } from 'sveltekit-superforms/client';
 
 	export let data;
@@ -19,6 +20,7 @@
 	});
 </script>
 
+<MetaTags title="Forgot Password" />
 <form action="?/forgotPassword" class="flex flex-col gap-2" method="post" use:enhance>
 	<div>
 		<h1 class="text-4xl">Forgot Password</h1>
