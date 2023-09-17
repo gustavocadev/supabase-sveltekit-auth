@@ -30,7 +30,13 @@
 		}
 	});
 
-	const { form: setupProfileForm, errors: setupProfileErrors } = superForm(data.setupProfileForm);
+	const { form: setupProfileForm, errors: setupProfileErrors } = superForm(data.setupProfileForm, {
+		onUpdated: ({ form }) => {
+			if (form.message?.type === 'error') {
+				toast.error(form.message.text);
+			}
+		}
+	});
 
 	const handleUpdateProfilePhoto = async (e: Event) => {
 		const target = e.target as HTMLInputElement;
@@ -112,7 +118,7 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<form action="?/sendOPTCode" class="flex flex-col gap-4" method="post">
+		<form action="?/sendOPTCode" class="flex flex-col gap-4" method="post" use:enhance>
 			<div class="flex gap-4">
 				<div class="w-2/12 flex flex-col gap-2">
 					<label for="">Country Code</label>
