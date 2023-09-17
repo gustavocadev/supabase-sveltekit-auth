@@ -15,6 +15,7 @@ export const load = async ({ locals }) => {
 export const actions = {
 	updatePassword: async ({ request, locals }) => {
 		const form = await superValidate(request, updatePasswordSchema);
+
 		if (!form.valid) return fail(400, { form });
 
 		const { data, error } = await locals.supabase.auth.updateUser({
@@ -22,6 +23,7 @@ export const actions = {
 		});
 
 		if (error) {
+			console.log('error', error);
 			return message(
 				form,
 				{
