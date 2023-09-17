@@ -7,6 +7,7 @@
 	import { superForm } from 'sveltekit-superforms/client';
 	import type { PageData } from './$types';
 	import type { Message } from '$lib/types/Message';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
 
@@ -19,28 +20,27 @@
 	});
 
 	const handleSignInGoogleProvider = async () => {
-		const { error, data: googleData } = await data.supabase.auth.signInWithOAuth({
+		const { error } = await data.supabase.auth.signInWithOAuth({
 			provider: 'google',
 			options: {
+				// redirect to callback url to generate a session by code
+				redirectTo: `${$page.url.origin}/auth/callback`,
 				queryParams: {
 					access_type: 'offline',
 					prompt: 'consent'
 				}
 			}
 		});
+
 		if (error) {
 			toast.error(error.message);
 			return;
-		}
-
-		if (googleData) {
-			toast.success('Logged in with Google');
 		}
 	};
 
 	const handleLoginSubmit: SubmitFunction = () => {
 		return async ({ result }) => {
-			if (result.type === 'success') toast.success('Logged in');
+			if (result.type === 'success') toast.success('Successfully logged in');
 
 			await applyAction(result);
 		};
