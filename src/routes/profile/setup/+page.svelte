@@ -42,7 +42,10 @@
 
 		// delete previous avatar
 		const avatarsBucket = await data.supabase.storage.from('avatars').list(userId);
-		if (avatarsBucket.data) {
+		if (avatarsBucket.error) return;
+
+		// only if there is more than 1 file
+		if (avatarsBucket.data.length > 1) {
 			const latestFile = avatarsBucket.data?.at(0);
 
 			console.log({ latestFile });
@@ -79,7 +82,7 @@
 
 	<div class="flex flex-col gap-4">
 		<figure class="flex gap-4 justify-center">
-			<Avatar initials="JD" background="bg-primary-500" src={data.avatar?.signedUrl} width="w-60" />
+			<Avatar initials="JD" background="bg-primary-500" src={data.avatar?.publicUrl} width="w-60" />
 		</figure>
 
 		<div class="flex justify-center">
@@ -158,7 +161,7 @@
 
 	<input type="hidden" bind:value={countryCode} name="countryCode" />
 	<input type="hidden" bind:value={phoneNumber} name="phoneNumber" />
-	<input type="hidden" value={data.avatar?.signedUrl} name="avatarUrl" />
+	<input type="hidden" value={data.avatar?.publicUrl} name="avatarUrl" />
 
 	<button class="btn variant-filled-primary" type="submit">Go to my Dashboard</button>
 </form>
