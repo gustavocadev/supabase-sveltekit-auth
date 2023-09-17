@@ -25,7 +25,7 @@
 			provider: 'google',
 			options: {
 				// this is important!, we redirect to callback url to generate a session by code
-				redirectTo: `${$page.url.origin}/auth/callback`,
+				redirectTo: `${$page.url.origin}/auth/callback?redirectTo=/profile/setup`,
 				queryParams: {
 					access_type: 'offline',
 					prompt: 'consent'
