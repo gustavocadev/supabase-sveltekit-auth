@@ -99,38 +99,43 @@ export const actions = {
 	},
 	completeProfile: async ({ request }) => {
 		const setupProfileForm = await superValidate(request, setupProfileSchema);
-
 		if (!setupProfileForm.valid) {
+			console.log(setupProfileForm.errors);
 			return fail(400, {
 				setupProfileForm
 			});
 		}
-		const { countryCode, phoneNumber, codeToVerify, firstName, avatarUrl, lastName } =
-			setupProfileForm.data;
+		const {
+			countryCode,
+			phoneNumber,
+			codeToVerify,
+			firstName,
+			avatarUrl = null,
+			lastName
+		} = setupProfileForm.data;
 
 		const verification_check = await verifyOPTCode(`${countryCode}${phoneNumber}`, codeToVerify);
 
-		if (verification_check.status === 'approved') {
-			// Save
-			await db.update(profiles).set({
-				first_name: firstName,
-				last_name: lastName,
-				avatar_url: avatarUrl,
-				phone_validate: true,
-				country_code: countryCode,
-				phone_number: phoneNumber
-			});
-
-			throw redirect(303, '/');
+		if (verification_check.status !== 'approved') {
+			return message(
+				setupProfileForm,
+				{
+					type: 'error',
+					text: 'Code is invalid'
+				},
+				{ status: 400 }
+			);
 		}
 
-		return message(
-			setupProfileForm,
-			{
-				type: 'error',
-				text: 'Code is invalid'
-			},
-			{ status: 400 }
-		);
+		// Save
+		await db.update(profiles).set({
+			first_name: firstName,
+			last_name: lastName,
+			avatar_url: avatarUrl,
+			phone_validate: true,
+			country_code: countryCode,
+			phone_number: phoneNumber
+		});
+		throw redirect(303, '/');
 	}
 } satisfies Actions;
