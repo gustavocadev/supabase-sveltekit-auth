@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const setupProfileSchema = z.object({
-	avatarUrl: z.string().url().optional(),
+	avatarUrl: z.string().optional(),
 	firstName: z.string().min(2).max(40),
 	lastName: z.string().min(2).max(40),
 	countryCode: z.string().min(2).max(3),
