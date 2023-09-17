@@ -3,6 +3,7 @@ import { redirect, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
 	const code = url.searchParams.get('code');
+	const redirectTo = url.searchParams.get('redirectTo') ?? '/';
 
 	// if there is no code, we redirect the user to the login page
 	if (!code) {
@@ -13,5 +14,5 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 	await locals.supabase.auth.exchangeCodeForSession(code);
 
 	// we could instead redirect the user to a cuztomized page for confirmed email address
-	throw redirect(303, `/profile/setup`);
+	throw redirect(303, redirectTo);
 };
