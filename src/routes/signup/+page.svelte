@@ -5,6 +5,7 @@
 	import { toast } from 'svelte-french-toast';
 	import type { signupSchema } from '$lib/schemas/user/signupSchema.js';
 	import type { Message } from 'twilio/lib/twiml/MessagingResponse.js';
+	import { page } from '$app/stores';
 
 	export let data;
 
@@ -20,9 +21,11 @@
 	});
 
 	const handleSignUpGoogleProvider = async () => {
-		const { error, data: googleData } = await data.supabase.auth.signInWithOAuth({
+		const { error } = await data.supabase.auth.signInWithOAuth({
 			provider: 'google',
 			options: {
+				// this is important!, we redirect to callback url to generate a session by code
+				redirectTo: `${$page.url.origin}/auth/callback`,
 				queryParams: {
 					access_type: 'offline',
 					prompt: 'consent'
@@ -34,8 +37,6 @@
 			toast.error(error.message);
 			return;
 		}
-
-		if (googleData) toast.success('Logged in with Google');
 	};
 </script>
 
