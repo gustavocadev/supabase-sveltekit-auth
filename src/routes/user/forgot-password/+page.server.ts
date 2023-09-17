@@ -23,7 +23,7 @@ export const actions = {
 		const resetPasswordForEmail = await locals.supabase.auth.resetPasswordForEmail(
 			form.data.email,
 			{
-				redirectTo: `${url.origin}/user/update-password`
+				redirectTo: `${url.origin}/auth/callback?redirectTo=/user/update-password`
 			}
 		);
 
