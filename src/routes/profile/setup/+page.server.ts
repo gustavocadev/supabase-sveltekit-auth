@@ -49,18 +49,17 @@ export const load = async ({ locals }) => {
 	const firstImgName = userAvatars.data.reverse().at(0)?.name;
 
 	// generate a signed url for the user's avatar
-	const urlSignedAvatars = await locals.supabase.storage
+	const publicUrl = locals.supabase.storage
 		.from('avatars')
-		.createSignedUrl(`${userId}/${firstImgName}`, 60);
+		.getPublicUrl(`${userId}/${firstImgName}`);
 
-	if (urlSignedAvatars.error) throw error(500, urlSignedAvatars.error.message);
-	if (!urlSignedAvatars.data) throw error(404, 'Error generating signed url');
+	if (!publicUrl.data) throw error(404, 'Error generating signed url');
 
 	return {
 		setupProfileForm,
 		sendOPTCodeForm,
 		countryCodes,
-		avatar: urlSignedAvatars.data
+		avatar: publicUrl.data
 	};
 };
 
@@ -125,7 +124,13 @@ export const actions = {
 			throw redirect(303, '/');
 		}
 
-		// Save
-		throw redirect(303, '/profile/setup');
+		return message(
+			setupProfileForm,
+			{
+				type: 'error',
+				text: 'Code is invalid'
+			},
+			{ status: 400 }
+		);
 	}
 } satisfies Actions;
